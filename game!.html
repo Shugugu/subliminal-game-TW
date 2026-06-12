@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>潛意識洗腦 (Subliminal) - 頂加怪談特製版</title>
+    <style>
+        /* === 核心視覺 === */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0; padding: 0;
+            background-color: #020403;
+            color: #33ff66;
+            font-family: 'Courier New', Courier, 'PingFang TC', 'Microsoft JhengHei', monospace;
+            overflow: hidden;
+            height: 100vh; width: 100vw;
+            display: flex; justify-content: center; align-items: center;
+            position: relative;
+            transition: background 1s ease-in-out;
+        }
+
+        /* CRT 終端掃描線 */
+        body::before {
+            content: " "; display: block;
+            position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.04));
+            z-index: 999; background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+
+        /* 遊戲核心容器 */
+        .crt-container {
+            width: 95%; max-width: 750px; height: 85vh;
+            background: rgba(4, 10, 6, 0.95);
+            border: 2px solid #22aa44; border-radius: 8px;
+            box-shadow: 0 0 35px rgba(0, 255, 100, 0.2), inset 0 0 20px rgba(0, 255, 100, 0.15);
+            display: flex; flex-direction: column;
+            position: relative; z-index: 10; overflow: hidden;
+        }
+
+        /* 頂部狀態列 */
+        .status-bar {
+            padding: 14px 20px; border-bottom: 1px dashed #22aa44;
+            display: flex; justify-content: space-between; font-size: 14px;
+            letter-spacing: 2px; background: rgba(0, 15, 4, 0.7);
+            z-index: 10;
+        }
+
+        .san-text { font-weight: bold; transition: color 0.5s ease; }
+        .san-green { color: #33ff66; text-shadow: 0 0 5px rgba(51,255,102,0.6); }
+        .san-yellow { color: #ffcc00; text-shadow: 0 0 5px rgba(255,204,0,0.6); }
+        .san-red { color: #ff3333; text-shadow: 0 0 8px rgba(255,51,51,0.8); animation: text-shiver 0.1s infinite; }
+
+        .text-shiver-active { animation: text-shiver 0.08s infinite !important; color: #ff4444 !important; text-shadow: 0 0 8px red !important; }
+
+        @keyframes text-shiver {
+            0% { transform: translate(2px, 1px); }
+            50% { transform: translate(-2px, -1px); }
+            100% { transform: translate(1px, -2px); }
+        }
+
+        /* 故事內容主區域 */
+        .story-body {
+            flex-grow: 1; padding: 30px; overflow-y: auto;
+            display: flex; flex-direction: column; justify-content: flex-start;
+            position: relative; cursor: pointer;
+        }
+
+        .scene-bg-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1; opacity: 0.16; background-size: cover; background-position: center;
+            pointer-events: none; 
+            filter: grayscale(100%) contrast(220%) brightness(35%) blur(0.5px);
+            transition: background-image 0.8s ease-in-out;
+        }
+
+        .text-stream {
+            position: relative; z-index: 5; font-size: 16px; line-height: 2.3;
+            letter-spacing: 1.5px; color: #d5ffd5; text-shadow: 0 0 3px rgba(51,255,102,0.3);
+            white-space: pre-line; pointer-events: none;
+        }
+
+        .paragraph-block {
+            margin-bottom: 24px; opacity: 0; transform: translateY(6px);
+            animation: block-fade-in 0.25s forwards ease-out;
+        }
+
+        @keyframes block-fade-in { to { opacity: 1; transform: translateY(0); } }
+
+        /* 互動控制區 */
+        .control-panel {
+            padding: 20px 30px; border-top: 1px dashed #22aa44;
+            display: flex; flex-direction: column; gap: 12px;
+            background: rgba(0, 8, 2, 0.75); z-index: 5;
+        }
+
+        .click-hint-banner {
+            font-size: 12px; color: #1f6631; text-align: center; letter-spacing: 3px;
+            padding: 4px 0; font-family: monospace; animation: pulse-blink 2s infinite;
+        }
+        @keyframes pulse-blink { 50% { opacity: 0.4; } }
+
+        .choice-btn {
+            background: #051208; border: 1px solid #1a592a; color: #33ff66;
+            padding: 15px 20px; font-size: 15px; text-align: left; cursor: pointer;
+            border-radius: 4px; transition: all 0.2s ease; display: none; letter-spacing: 1px;
+            text-shadow: 0 0 4px rgba(51,255,102,0.4); width: 100%;
+        }
+        .choice-btn:hover { background: #0d2b15; border-color: #33ff66; color: #fff; padding-left: 28px; box-shadow: 0 0 10px rgba(51,255,102,0.2); }
+
+        #splash-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #020503; z-index: 2000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; color: #33ff66;
+        }
+
+        #splash-title {
+            font-size: 26px; letter-spacing: 6px; margin-bottom: 40px;
+            text-shadow: 0 0 10px rgba(51,255,102,0.8); text-align: center; line-height: 1.6;
+        }
+
+        .enter-btn {
+            background-color: #0a1f0f; color: #33ff66; border: 2px solid #33ff66;
+            padding: 18px 45px; font-size: 16px; letter-spacing: 3px; cursor: pointer; border-radius: 4px;
+            box-shadow: 0 0 20px rgba(51,255,102,0.3); transition: all 0.3s;
+        }
+        .enter-btn:hover { background-color: #33ff66; color: #020503; box-shadow: 0 0 30px rgba(51,255,102,0.6); }
+
+        #screen-flash-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #cc1111; opacity: 0; z-index: 1500; pointer-events: none;
+        }
+
+        .screen-shake { animation: violent-shake 0.1s infinite alternate !important; }
+        @keyframes violent-shake {
+            0% { transform: translate(5px, 4px) rotate(0deg); }
+            100% { transform: translate(-5px, -4px) rotate(0.5deg); }
+        }
+
+        .android-toast {
+            position: fixed; bottom: 15%; left: 50%; transform: translateX(-50%);
+            background-color: #232323; color: #f0f0f0; padding: 14px 32px; border-radius: 24px;
+            font-size: 14px; box-shadow: 0 5px 20px rgba(0,0,0,0.7); z-index: 1800;
+            display: none; cursor: pointer; font-family: sans-serif; border: 1px solid #444;
+            letter-spacing: 1px;
+        }
+
+        /* 🩸 逆向倒流狂湧的血滴粒子 */
+        .blood-particle {
+            position: absolute; bottom: -30px; 
+            background: radial-gradient(circle, #ff1111 0%, #7a0000 70%, rgba(0,0,0,0) 100%);
+            border-radius: 50%; pointer-events: none; z-index: 20;
+            box-shadow: 0 0 10px #ff0000, 0 0 4px #7a0000;
+            animation: blood-rise linear forwards;
+        }
+        @keyframes blood-rise {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            80% { opacity: 0.9; }
+            100% { transform: translateY(-92vh) scale(0.4); opacity: 0; }
+        }
+
+        /* 🔀 字海解碼：定時鏡像翻轉與劇烈閃爍 */
+        .corrupted-text-flicker { animation: corrupt-flip-blink 1.4s infinite steps(1) !important; }
+        @keyframes corrupt-flip-blink {
+            0% { transform: scaleX(1); color: #ff3333; text-shadow: 0 0 5px red; }
+            20% { transform: scaleX(-1); color: #00ffff; text-shadow: 0 0 6px cyan; }
+            40% { transform: scaleX(1); color: #ff3333; }
+            60% { transform: scaleX(-1); color: #ffffff; text-shadow: 0 0 12px red; }
+            80% { transform: scaleX(1); color: #ff2222; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="splash-screen">
+        <div id="splash-title">潛意識洗腦 (Subliminal)<br><span style="font-size: 14px; color: #66aa77; letter-spacing: 2px;">正宗台式頂加違建怪談 · 互動企劃版</span></div>
+        <button class="enter-btn" onclick="initializeGameEngine()">啟動終端並加載音軌</button>
+    </div>
+
+    <div id="screen-flash-overlay"></div>
+    <div id="android-toast" class="android-toast" onclick="advanceStep('end_game_trigger')">[系統提示] 你從噩夢中驚醒了。點擊返回現實。</div>
+
+    <div id="terminal" class="crt-container">
+        <div class="status-bar">
+            <span id="ui-time">TIME: DAY 01 | 02:14</span>
+            <span id="ui-san-container">SAN: <span id="ui-san" class="san-green">100%</span></span>
+        </div>
+
+        <div class="story-body" id="story-body-element" onclick="feedNextSentence()">
+            <div class="scene-bg-overlay" id="scene-bg"></div>
+            <div class="text-stream" id="text-canvas"></div>
+        </div>
+
+        <div class="control-panel" id="control-slot">
+            <div class="click-hint-banner" id="banner-hint">--- 點擊上方螢幕任意處推進故事 ---</div>
+            <button id="choice-a" class="choice-btn"></button>
+            <button id="choice-b" class="choice-btn"></button>
+        </div>
+    </div>
+
+    <script>
+        let currentKey = "day1_start";
+        let sentenceIndex = 0;
+        let typingTimerId = null;
+        let isTypingActive = false;
+        let sanValue = 100;
+        let hasPulseMusicOn = false;
+        let chosenToListenDay1 = false;
+        let chosenToListenDay2 = false;
+        let isBloodRaining = false;
+        let bloodRainTimer = null;
+        let pulseIntervalId = null;
+        let ambientHumNode = null;
+        let audioCtx = null;
+
+        const imgAssets = {
+            title: "https://en.pimg.jp/100/489/931/1/100489931.jpg", 
+            room: "https://en.pimg.jp/100/489/931/1/100489931.jpg"
+        };
+
+        // --- 完整故事數據庫 ---
+        const gameScript = {
+            "day1_start": {
+                time: "DAY 01 | 午夜 02:14", bg: imgAssets.title,
+                lines: [
+                    "又是一個潮濕而令人煩悶的台北夏夜。",
+                    "你剛搬進這間便宜的頂樓加蓋，小小的套房塞了床和舊書桌就滿了。",
+                    "二房東下午交鑰匙時走得急，連押金都沒點清，只留下一句：『這條巷子老一輩住得多，晚上安靜，早點睡。』",
+                    "確實太安靜了。隔音好得像沉在水底，連牆角老舊分離式冷氣機傳來的「震震震」低頻沉鳴，都顯得有些沉重。",
+                    "你躺在剛鋪好的薄床墊上，瞪著天花板。四周的死寂壓得你耳鳴聲嗡嗡作響，大腦因為白天的就業壓力一片亢奮，毫無睡意。",
+                    "你翻開手機，點開一個老舊論壇的網頁，看到網友極力推薦一個下載連結，說這首『深層助眠脈衝音訊』治好了他十年的失眠。你有些心動。"
+                ],
+                choices: [
+                    { text: "【戴上耳機】配戴耳機，將音量拉高", next: "day1_headphone" },
+                    { text: "【滑手機】去脆 (Threads) 上漫無目的地閒逛", next: "day1_threads" }
+                ]
+            },
+            "day1_headphone": {
+                time: "DAY 01 | 午夜 02:30", bg: imgAssets.room,
+                lines: [
+                    "快戴上耳機, 將音樂調大聲。",
+                    "耳機裡傳來規律穩定的「咚...咚...」重低音鼓點。這種類似心跳的頻率給了你莫名的安全感，漸漸蓋過了房間裡冷氣壓縮機的煩人沉鳴。",
+                    "你緊繃的防備在規律的撞擊聲中慢慢放鬆，很快就睡著了。"
+                ],
+                effect: function() { hasPulseMusicOn = true; chosenToListenDay1 = true; startPulseEngine(1400); },
+                choices: [{ text: "[睜開眼睛] 到了隔天深夜...", next: "day2_start" }]
+            },
+            "day1_threads": {
+                time: "DAY 01 | 深夜 04:12", bg: imgAssets.title,
+                lines: [
+                    "你滑著脆上面一個個無意義的短文字與迷因，直到視線發酸。",
+                    "耳鳴的嗡嗡聲在寂靜中越來越響，冷氣螢幕的微弱綠光在牆上拉出長長的的詭異陰影。",
+                    "直到清晨，你才精疲力竭地睡去。"
+                ],
+                choices: [{ text: "到了隔天深夜...", next: "day2_start" }]
+            },
+            "day2_start": {
+                time: "DAY 02 | 午夜 01:55", bg: imgAssets.title,
+                lines: [
+                    "今天台北下起大雨。雨點瘋狂砸在違建的鐵皮屋頂上，發出嘈雜而混亂的劈哩拍啦聲。",
+                    "躺了一下睡不著，大腦深處轉為一陣鈍痛。你索性坐回書桌前，一邊揉著太陽穴死瞪著螢幕。",
+                    "傍晚剩的鹽酥雞已經發乾，九層塔的油耗味在房間裡飄散。",
+                    "這時你突然注意到，窗外暴雨明明大得砸人，冷氣機那規律的運轉聲，卻好像直接在耳邊響起一樣，清晰得不太自然。"
+                ],
+                effect: function() { 
+                    sanValue = chosenToListenDay1 ? 95 : 80; updateStatusBar(); 
+                },
+                choices: [
+                    { text: "動態文案槽A", next: "day2_stay_up" },
+                    { text: "動態文案槽B", next: "day2_music" } 
+                ]
+            },
+            "day2_stay_up": {
+                time: "DAY 02 | 凌晨 04:30", bg: imgAssets.title,
+                lines: [
+                    "你選擇微波鹽酥雞、滑手機硬撐熬夜。",
+                    "那一整晚在暴雨和冷氣雜音的夾擊下，你幾乎完全無法入睡。直到清晨五點天光微亮，你才迷迷糊糊睡了不到一小時。",
+                    "隔天醒來你頭痛欲裂，神經像一根拉到極限的橡皮筋，看什麼事情都覺得無比心浮氣躁。"
+                ],
+                effect: function() { 
+                    pausePulseEngineOnly();
+                    sanValue = 65; updateStatusBar(); 
+                },
+                choices: [{ text: "到了第三天深夜...", next: "day3_branch" }]
+            },
+            "day2_music": {
+                time: "DAY 02 | 午夜 02:10", bg: imgAssets.room,
+                lines: [
+                    "熟悉的重低音鼓點再次在耳機裡響起，『咚...咚...』。",
+                    "你深深吸了一口氣，原本緊繃的焦慮慢慢在規律的撞擊聲中被撫平。",
+                    "窗外的鐵皮暴雨聲、老舊冷氣的運轉聲，彷彿都被這道密閉的鼓點隔絕在另一個世界。今晚你依舊睡得很好。"
+                ],
+                effect: function() { hasPulseMusicOn = true; chosenToListenDay2 = true; sanValue = 90; updateStatusBar(); startPulseEngine(1200); },
+                choices: [{ text: "到了第三天深夜...", next: "day3_branch" }]
+            },
+            "day3_branch": {
+                time: "DAY 03 | 潛意識侵蝕中", bg: imgAssets.title,
+                lines: ["聽音樂聽音樂聽音樂你必須聽音樂聽音樂聽音樂聽音樂你必須聽音樂——"],
+                effect: function() { 
+                    setTimeout(() => {
+                        let canvas = document.getElementById("text-canvas");
+                        canvas.style.color = "#ff2222"; canvas.style.textShadow = "0 0 10px red"; canvas.style.fontWeight = "bold";
+                    }, 50);
+
+                    setTimeout(() => {
+                        let canvas = document.getElementById("text-canvas");
+                        canvas.style.color = "#d5ffd5"; canvas.style.textShadow = "0 0 3px rgba(51,255,102,0.3)"; canvas.style.fontWeight = "normal";
+                        advanceStep(chosenToListenDay1 || chosenToListenDay2 ? "day3_addicted" : "day3_clean"); 
+                    }, 450);
+                }
+            },
+            "day3_addicted": {
+                time: "DAY 03 | 午夜 02:14", bg: imgAssets.title,
+                lines: [
+                    "不知道搬進來幾天了。你發現自己變得有點奇怪，只要耳機一摘下來，四周沉重的死寂就像要把人活吞。",
+                    "凌晨兩點，這股寂靜突然被窗外鐵窗上『啪嗒』的一聲異響砸碎。",
+                    "緊接著，一聲極其淒厲的貓叫在狹窄的防火巷深處撕裂開來。"
+                ],
+                triggerAtLine: 2, triggerAction: function() { playSynthesizedSFX("cat"); triggerFlashOverlay(); },
+                choices: [{ text: "【加大耳機音量】尋求耳機裡脈衝重鼓點的安撫，閉眼死撐。", next: "day4_start" }]
+            },
+            "day3_clean": {
+                time: "DAY 03 | 午夜 02:14", bg: imgAssets.title,
+                lines: [
+                    "連續兩天失眠讓你神經衰弱到了極點，大腦亢奮得只剩耳鳴。",
+                    "凌晨兩點，窗外鐵窗突然『啪嗒』一聲，隨後一聲野貓的叫聲在防火巷深處炸開！",
+                    "那尖銳的音調像極了啼哭，在水泥隔間裡瘋狂迴盪，聽著簡直像個被塞在紙箱裡、正隔著紙板絕望悶啼的窒息嬰兒。",
+                    "這個念頭讓你全身劇烈一震，頭皮發麻，手心全是冷汗。",
+                    "這聲音成了壓垮你的最後一根稻草，在逼近發瘋的邊緣，你顫抖著手一把抓過桌上的耳機——你現在只想瘋狂地用音樂塞滿耳朵，徹底殺死窗外這該死的動靜。"
+                ],
+                triggerAtLine: 2, triggerAction: function() { playSynthesizedSFX("cat"); triggerFlashOverlay(); },
+                effect: function() { sanValue = 65; updateStatusBar(); },
+                choices: [{ text: "【無法忍受】抓起第一天下載、卻一直沒聽的那首脈衝助眠音樂，第一次戴上耳機。", next: "day3_clean_activate" }]
+            },
+            "day3_clean_activate": {
+                time: "DAY 03 | 午夜 02:20", bg: imgAssets.room,
+                lines: [
+                    "你粗暴地把耳機塞進耳朵，點開播放。",
+                    "「咚...咚...咚...」",
+                    "沉重得近乎粗暴的低頻重擊瞬間灌滿你的耳膜，以霸道的姿態把防火巷裡的淒厲哀鳴強行切斷。",
+                    "大腦在一片麻木的震動中，終於昏沉地墜入夢鄉。"
+                ],
+                effect: function() { hasPulseMusicOn = true; startPulseEngine(1000); },
+                choices: [{ text: "到了第四天深夜...", next: "day4_start" }]
+            },
+            "day4_start": {
+                time: "DAY 04 | 午夜 02:14", bg: imgAssets.title,
+                lines: [
+                    "你白天的脾氣粗暴無比，差點和外送員扭打，朋友的訊息也只覺得煩。",
+                    "現在只有躲進耳機那沉重的鼓點裡，你才能感到安心，那規律的重擊像一堵厚實的牆，把外界所有雜音通通隔絕開來。",
+                    "深夜洗完臉擰緊水龍頭，你整個人僵在原地。四周明明一片死寂，耳膜深處卻自主共鳴起「咚...咚...」的微弱聲響，規律得像體內長出了第二顆心臟。",
+                    "你擦掉鏡面霧氣，看著自己黑眼圈深陷、憔悴如死屍的臉，逃一般地走回床邊。"
+                ],
+                effect: function() { hasPulseMusicOn = true; sanValue = 70; updateStatusBar(); startPulseEngine(1000); },
+                choices: [{ text: "【回床上】戴上耳機，將原本的脈衝音樂開得更大聲，試圖壓制耳鳴。", next: "day5_start" }]
+            },
+            "day5_start": {
+                time: "DAY 05 | 午夜 02:14", bg: imgAssets.title,
+                lines: [
+                    "天天聽那重鼓點讓你有些厭煩，今晚為了能好好睡個好覺，你決定換個音樂，在網路上隨便找了一首『大自然蟲鳴鳥叫白噪音』播放。",
+                    "然而耳鳴裡清脆的鳥鳴一響，大腦深處就傳來劇烈的針刺感，刺耳得讓你反胃、狂冒冷汗。你這才毛骨悚然地意識到，自己早就被制約了，不聽鼓聲根本無法入睡。",
+                    "在崩潰邊緣，你只能顫抖著手妥換回去，任由那煩人的重擊再度震碎神經，帶你墜入夢鄉。"
+                ],
+                effect: function() { hasPulseMusicOn = true; sanValue = 75; updateStatusBar(); startPulseEngine(900); }, 
+                choices: [{ text: "【切換回原音樂】受不了了！趕快換回原本的脈衝鼓點音樂！", next: "day6_start" }]
+            },
+            "day6_start": {
+                time: "DAY 06 | 午夜 02:14", bg: imgAssets.title,
+                lines: [
+                    "你的生活變得一團糟，每天醒來都頭痛欲裂。",
+                    "因為精神狀態差到在公司頻頻出包，你最後被老闆下了最後通牒，要求你在家休假一週好好清醒一下。",
+                    "壓抑的你，今晚只能無助地躺在床上，死死塞著耳機。",
+                    "在漫長的死寂中，你突然注意到，原本規律安心的「咚...咚...」鼓點，今晚拍子歪得厲害，時快時慢。而且在每一次撞擊的尾音，都隱約夾雜著一種古怪、黏稠的沙沙聲，那音調像是喉嚨卡著痰、倒著吸氣的詭異低語，斷斷續續地和耳鳴混在一起。你手心全是汗，扯了扯被子。"
+                ],
+                effect: function() { hasPulseMusicOn = true; sanValue = 65; updateStatusBar(); startPulseEngine(750); },
+                choices: [{ text: "【強迫入睡】不再去想，閉上眼睛...", next: "day7_start" }]
+            },
+            "day7_start": {
+                time: "DAY 07 | 午夜 03:00", bg: imgAssets.title,
+                lines: [
+                    "大門突然傳來極度沉重的撞擊聲：『咚...咚...咚...』！",
+                    "那個節奏，和耳機裡的鼓點完全同步。你嚇得一把摘下耳機，敲門聲卻又在同一秒完全停了。",
+                    "你重新戴上耳機，撞擊聲竟然又在耳膜深處同步震開！",
+                    "你抓起防身工具，驚恐地衝向大門口。"
+                ],
+                effect: function() { 
+                    sanValue = 55; updateStatusBar(); 
+                    document.getElementById("terminal").classList.add("screen-shake");
+                    playSynthesizedSFX("door"); triggerFlashOverlay(); 
+                    setTimeout(() => { playSynthesizedSFX("door"); triggerFlashOverlay(); }, 220);
+                    setTimeout(() => { playSynthesizedSFX("door"); triggerFlashOverlay(); document.getElementById("terminal").classList.remove("screen-shake"); }, 440);
+                },
+                choices: [
+                    { text: "【隔門質問】絕不開門，死死貼上貓眼往外看並大喊：『誰啦！半夜在幹嘛！』", next: "day7_shout" },
+                    { text: "【開門探底】深吸一口氣，不看貓眼，緊握除毛刀直接顫抖地推開一條門縫", next: "day7_open" }
+                ]
+            },
+            "day7_shout": {
+                time: "DAY 07 | 午夜 03:02", bg: imgAssets.title,
+                lines: [
+                    "你死死把眼睛貼在貓眼小孔上，隔著門大聲質問。",
+                    "透過貓眼那種『魚眼極度扭曲變形』的邊緣模糊視野，外頭走廊的感應綠光在黑暗中死死打著。",
+                    "隔壁大叔正滿身酒氣、五官扭曲。他這時突然猛地轉過身，用後腦勺一邊發狂般重複嘟囔，一邊死命砸向他自己家的大門板：",
+                    "『啊...少年仔...抱歉啦...大夜班下班喝了點酒...這老鎖頭不知道是怎樣...』",
+                    "『正的轉、倒的轉都打不開……就一直卡死在那裡，我一急才一直撞鐵門……』"
+                ],
+                choices: [
+                    { text: "【隔門安慰】緊貼著貓眼大喊：『好啦阿伯，鎖頭舊了啦，你慢慢來。』並立刻反鎖房門。", next: "day7_end_peace" },
+                    { text: "【保持戒備】冷汗直流，嚇得一句話都不敢回，慢慢退回床上。", next: "day7_end_fear" }
+                ]
+            },
+            
+            // 💥 空間邏輯全面聚焦於門把與門板自殘
+            "day7_open": {
+                time: "DAY 07 | 午夜 03:02", bg: imgAssets.title,
+                lines: [
+                    "鐵門發出刺耳的『嘎吱』聲，你緊握除毛刀，拉開鎖鍊將門推開一條極窄的窄縫。",
+                    "藉著走廊昏暗幽綠的感應燈，你迎面直視大叔。那張被高粱酒灌得通紅、雙眼凹陷失焦的恐怖臉孔，直接突兀地暴露在門縫視線中。",
+                    "一股濃烈的油耗劣質酒氣撲面而來，他看著你發出黏稠、倒抽氣的苦笑：",
+                    "『少年仔...歹勢啦...喝得有點多...正的轉、倒的轉都打不開……』",
+                    "『一直卡死在那裡……卡死在那裡……卡死在那裡……』",
+                    "一說完，他竟然當著你的面，雙手死死反扣住他自己家大門的『金屬老舊鐵把手』，瘋狂地拿他自己的額頭，對著他家那扇死死卡住、冰冷生鏽的白鐵大門板死命地瘋狂猛砸！鮮血在綠光下黑得黏稠。"
+                ],
+                choices: [
+                    { text: "【驚嚇關門】被眼前的自殘畫面嚇到瘋掉，猛地一把將門死死甩上並上鎖，狂跳退回被窩。", next: "day7_end_fear" }
+                ]
+            },
+            "day7_end_peace": {
+                time: "DAY 07 | 午夜 03:10", bg: imgAssets.title,
+                lines: [
+                    "貓眼裡，大叔在外頭唯唯諾諾地應了幾聲，走廊傳來他繼續轉動鑰匙的開鎖聲。",
+                    "看來真的只是場誤會。你拍著胸口，覺得自己快被這段日子的神經質給活活逼瘋了。",
+                    "你虛脫地走回床邊，四周的死寂又像潮水般湧上來。"
+                ],
+                choices: [{ text: "【逃回被窩】戴上耳機，只有這個鼓點能讓你冷靜。", next: "day8_start" }]
+            },
+            "day7_end_fear": {
+                time: "DAY 07 | 午夜 03:10", bg: imgAssets.title,
+                lines: [
+                    "你癱坐在大門板後面，外頭的自殘撞擊聲突然消失了，走廊的感應燈似乎也啪一聲滅了。",
+                    "酒精和腐敗的惡臭似乎順著違建縫隙滲透進房。你拍著胸口，神經已經衰弱到了極點。",
+                    "你虛脫地走回床邊，逃一般地抓起耳機。"
+                ],
+                choices: [{ text: "【逃回被窩】戴上耳機，只有這個鼓點能讓你冷靜。", next: "day8_start" }]
+            },
+            "day8_start": {
+                time: "DAY 08 | 凌晨 04:00", bg: imgAssets.title,
+                lines: [
+                    "凌晨四點，外頭老舊街廓的死角深處，突然傳來第一聲拉長音的「吹狗螺」。",
+                    "一隻狗帶頭後，整條街的野狗都開始對著虛無的夜空瘋狂悲鳴，聲音隔著頂加鐵皮薄牆傳進來，陰森得讓人頭皮發麻。",
+                    "你大腦一片混沌，驚恐地發現窗外那些野狗哭號的長音起伏，竟然和耳機裡時快時慢、卡痰般的低語鼓點，產生了詭異的共振。",
+                    "你的脖子肌肉開始僵硬。那不像是狗叫，反而像無數人在跟著鼓點瘋狂地哀嚎、倒抽氣。",
+                    "再也受不了了，你的大腦瘋狂尖叫，催促你做出最後的抵抗。"
+                ],
+                triggerAtLine: 1, triggerAction: function() { playSynthesizedSFX("dog"); document.getElementById("terminal").classList.add("screen-shake"); },
+                effect: function() { hasPulseMusicOn = true; sanValue = 45; updateStatusBar(); startPulseEngine(800); },
+                choices: [{ text: "【拉高音量】把耳機音量開到最大，試圖用音量逃避外面的聲音。", next: "day9_start" }]
+            },
+            "day9_start": {
+                time: "DAY 09 | 午夜 02:14", bg: imgAssets.title,
+                lines: [
+                    "你已經好幾天不出門了。房間地上堆滿外送塑料袋和發霉的廚餘，空氣裡瀰漫著一股酸臭味。牆上老舊冷氣在黑暗中持續發出死卡住的低頻震動，像一塊沉重的巨石壓在頭頂。",
+                    "你木然地躺在床上。你發現，每當耳機裡的重鼓點響起，你的脖子就會跟著不由自主地猛烈抽搐一下。",
+                    "你的身體，好像已經不再屬於你了…… 強烈的窒息感排山倒海而來，逼得你幾乎無法呼吸。"
+                ],
+                effect: function() { hasPulseMusicOn = true; sanValue = 30; updateStatusBar(); document.getElementById("terminal").classList.remove("screen-shake"); startPulseEngine(700); },
+                choices: [{ text: "【抓緊最後的救命稻草】戴死耳機，任由抽搐的劇痛帶你墜入夢鄉。", next: "day10_nightmare" }]
+            },
+            "day10_nightmare": {
+                time: "DAY 10 | 深度噩夢",
+                lines: [
+                    "世界徹底熄燈了。",
+                    "你做了一個極度清醒的噩夢。你發現自己僵立在房間的穿衣鏡前。",
+                    "此時，頭頂那台老舊冷氣突然亮起幽暗、冰冷的綠色光芒。",
+                    "那道綠光死死打在鏡子上，將你的臉照得慘白，冷氣機同時傳出死卡住般的低頻震動。",
+                    "在那片令人窒息的幽綠色中，你驚恐地看著鏡中的自己，右手竟然不受控制地抓起除毛刀，狠狠劃向自己的脖子。",
+                    "鮮血瞬間狂湧......",
+                    "但最詭異的是，那些血沒有滴落，反而在綠光的折射下，以一種違反物理定律的詭異軌跡......",
+                    "瘋狂地「倒流」回脖子的傷口裡。"
+                ],
+                effect: function() { 
+                    sanValue = 20; updateStatusBar(); 
+                    document.body.style.background = "radial-gradient(circle at 85% 15%, rgba(0, 255, 100, 0.45) 0%, #030d06 60%, #010301 100%)";
+                    execBloodRainParticle(); 
+                },
+                choices: [{ text: "選項 A：【凝視綠光中的倒錯】忍著窒息感，死死盯著鏡子裡倒流的血...", next: "day10_corrupt" }]
+            },
+            "day10_corrupt": {
+                time: "DAY 10 | 潛意識解碼中",
+                lines: [
+                    "鏡子裡，那些倒流回脖子的鮮血，在皮膚表面死死卡住，竟然隱隱約約蠕動、拼湊成了扭曲的反向字體。",
+                    "頭頂冷氣機發出的綠光開始跟著耳機裡的重鼓點，瘋狂地閃爍、抽搐。每一次綠光閃起，你的脖子就跟著猛烈抽搐一下。",
+                    "你張大嘴巴想要求救，但你喉嚨裡發出的，卻不是尖叫，而是一陣陣黏稠、卡痰...滑稽地「倒著吸氣」的低語聲。",
+                    "那個聲音的節奏，和冷氣的震動、和幽綠的光閃、和耳機的重擊，完全同步。"
+                ],
+                effect: function() { 
+                    document.getElementById("text-canvas").classList.add("corrupted-text-flicker"); 
+                    playSynthesizedSFX("whisper"); 
+                },
+                // 💥 靈魂提示字完全復活歸位！
+                choices: [{ text: "選項 B：【打碎這面鏡子！！！】打破夢境讓我醒來！！！", next: "jumpscare_go" }]
+            }
+        };
+
+        const finalEspScript = [
+            "你那天嚇瘋了，連行李都沒收，連夜搭上最快的一班客運逃回了老家。",
+            "在南部老家躺了兩個星期，溫暖的陽光曬在皮膚上，直到那種黏稠的恐懼漸漸淡去。",
+            "某天下午，你坐在老家灑滿陽光的書桌前，喝著熱茶，那些零碎的片段卻突然在腦海中死死卡住。",
+            "『倒流的鮮血……』\n『鑰匙正的轉、倒的轉都打不開……』\n『還有自己喉嚨裡，那段倒著吸氣的詭異低語……』",
+            "正的轉……倒的轉……倒著吸氣……\n一個寒毛直豎的直覺突然像落雷一樣擊中你的背脊。",
+            "你顫抖著手打開電腦，將那個伴你度過無數夜晚、讓你極度依賴的『放鬆助眠音軌』，緩慢地丟進了專業剪輯軟體中……",
+            "你的視線死死瞪著螢幕上的波形圖，手指懸空在滑鼠上方，手心全是冷汗。\n你深吸一口氣，點下了那顆沉重的按鈕——【音軌反向播放 (Reverse)】。"
+        ];
+
+        let finalStageIndex = 0;
+
+        function initializeGameEngine() {
+            document.getElementById("splash-screen").style.display = "none";
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            let tOsc = audioCtx.createOscillator(); let tG = audioCtx.createGain();
+            tOsc.frequency.setValueAtTime(10, audioCtx.currentTime); tG.gain.setValueAtTime(0.001, audioCtx.currentTime);
+            tOsc.connect(tG); tG.connect(audioCtx.destination); tOsc.start(); tOsc.stop(audioCtx.currentTime + 0.05);
+
+            try {
+                ambientHumNode = audioCtx.createOscillator();
+                let humGain = audioCtx.createGain();
+                ambientHumNode.type = 'sine'; ambientHumNode.frequency.setValueAtTime(40, audioCtx.currentTime);
+                humGain.gain.setValueAtTime(0.22, audioCtx.currentTime);
+                ambientHumNode.connect(humGain); humGain.connect(audioCtx.destination);
+                ambientHumNode.start();
+            } catch (e) {}
+            progressStory("day1_start");
+        }
+
+        function progressStory(key) {
+            currentKey = key; sentenceIndex = 0;
+            document.getElementById("choice-a").style.display = "none";
+            document.getElementById("choice-b").style.display = "none";
+            document.getElementById("banner-hint").style.display = "block";
+            document.getElementById("text-canvas").innerHTML = "";
+            document.getElementById("text-canvas").className = "text-stream";
+
+            let data = gameScript[currentKey];
+            if (!data) return;
+
+            document.getElementById("ui-time").innerText = "TIME: " + data.time;
+            document.getElementById("scene-bg").style.backgroundImage = `url('${data.bg}')`;
+            document.getElementById("scene-bg").style.opacity = "0.16";
+
+            if (data.effect) data.effect();
+            feedNextSentence();
+        }
+
+        function feedNextSentence() {
+            if (isTypingActive) return; 
+
+            if (currentKey === "home_epilogue_line") {
+                renderHomeEpilogueStream();
+                return;
+            }
+
+            let data = gameScript[currentKey];
+            if (!data) return;
+
+            if (sentenceIndex < data.lines.length) {
+                isTypingActive = true;
+                let targetText = data.lines[sentenceIndex];
+                
+                if (data.triggerAtLine && sentenceIndex === data.triggerAtLine) {
+                    data.triggerAction();
+                }
+
+                let pBlock = document.createElement("div");
+                pBlock.className = "paragraph-block";
+                document.getElementById("text-canvas").appendChild(pBlock);
+                
+                let bodyEl = document.getElementById("story-body-element");
+                bodyEl.scrollTop = bodyEl.scrollHeight;
+                sentenceIndex++;
+
+                let charIdx = 0;
+                if (typingTimerId) clearInterval(typingTimerId);
+                typingTimerId = setInterval(() => {
+                    if (charIdx < targetText.length) {
+                        pBlock.innerHTML += targetText[charIdx];
+                        charIdx++;
+                    } else {
+                        clearInterval(typingTimerId);
+                        isTypingActive = false;
+                        if (sentenceIndex >= data.lines.length) { showBranchChoices(data); }
+                    }
+                }, sanValue < 50 ? 8 : 16);
+            } else {
+                showBranchChoices(data);
+            }
+        }
+
+        function showBranchChoices(data) {
+            document.getElementById("banner-hint").style.display = "none";
+            if (data.choices && data.choices.length > 0) {
+                let bA = document.getElementById("choice-a");
+                let bB = document.getElementById("choice-b");
+
+                if (data.choices[0]) {
+                    if (currentKey === "day2_start") {
+                        bA.innerText = chosenToListenDay1 ? "【吃宵夜】摘下耳機，把晚餐剩的鹽酥雞微波來吃（中斷聽音樂）" : "【吃宵夜】把晚餐剩的鹽酥雞微波來吃（繼續硬撐熬夜）";
+                    } else {
+                        bA.innerText = data.choices[0].text;
+                    }
+                    bA.style.display = "block";
+                    bA.onclick = function(e) { e.stopPropagation(); advanceStep(data.choices[0].next); };
+                }
+                
+                if (data.choices[1]) {
+                    if (currentKey === "day2_start") {
+                        bB.innerText = chosenToListenDay1 ? "【戴上耳機】播放昨天那首讓你很滿意的脈衝重鼓點音樂" : "【戴上耳機】有些心動，決定戴上耳機試試那首脈衝重鼓點音樂";
+                    } else {
+                        bB.innerText = data.choices[1].text;
+                    }
+                    bB.style.display = "block";
+                    bB.onclick = function(e) { e.stopPropagation(); advanceStep(data.choices[1].next); };
+                }
+            }
+        }
+
+        function updateStatusBar() {
+            let el = document.getElementById("ui-san");
+            el.innerText = sanValue + "%"; el.className = "";
+            if (sanValue >= 80) el.classList.add("san-green");
+            else if (sanValue >= 50) el.classList.add("san-yellow");
+            else el.classList.add("san-red");
+        }
+
+        function triggerFlashOverlay() {
+            let f = document.getElementById("screen-flash-overlay");
+            f.style.opacity = "0.8"; setTimeout(() => { f.style.opacity = "0"; }, 70);
+        }
+
+        function playSynthesizedSFX(type) {
+            if (!audioCtx || audioCtx.state === 'suspended') return;
+            let now = audioCtx.currentTime;
+            
+            if (type === 'cat') {
+                let osc = audioCtx.createOscillator(); let g = audioCtx.createGain();
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(380, now);
+                osc.frequency.exponentialRampToValueAtTime(820, now + 0.3);
+                osc.frequency.linearRampToValueAtTime(260, now + 0.9);
+                g.gain.setValueAtTime(0.4, now); g.gain.linearRampToValueAtTime(0.001, now + 0.9);
+                osc.connect(g); g.connect(audioCtx.destination);
+                osc.start(now); osc.stop(now + 0.9);
+            } else if (type === 'door') {
+                let osc = audioCtx.createOscillator(); let g = audioCtx.createGain();
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(75, now);
+                g.gain.setValueAtTime(0.7, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                osc.connect(g); g.connect(audioCtx.destination);
+                osc.start(now); osc.stop(now + 0.35);
+            } else if (type === 'dog') {
+                for (let i = 0; i < 4; i++) {
+                    let delay = i * 0.4;
+                    let osc = audioCtx.createOscillator(); let g = audioCtx.createGain();
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(135 + (i * 20), now + delay);
+                    osc.frequency.linearRampToValueAtTime(360 - (i * 15), now + delay + 1.5);
+                    osc.frequency.exponentialRampToValueAtTime(80 + (i * 8), now + delay + 5.5);
+                    g.gain.setValueAtTime(0, now + delay); g.gain.linearRampToValueAtTime(0.24, now + delay + 0.8); g.gain.linearRampToValueAtTime(0.001, now + delay + 5.5);
+                    osc.connect(g); g.connect(audioCtx.destination);
+                    osc.start(now + delay); osc.stop(now + delay + 5.5);
+                }
+            } else if (type === 'whisper') {
+                window.whisperLoopId = setInterval(() => {
+                    if (currentKey !== 'day10_corrupt') { clearInterval(window.whisperLoopId); return; }
+                    let osc = audioCtx.createOscillator(); let g = audioCtx.createGain();
+                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(110 + Math.random()*90, audioCtx.currentTime);
+                    g.gain.setValueAtTime(0.16, audioCtx.currentTime); g.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+                    osc.connect(g); g.connect(audioCtx.destination);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+                }, 70);
+            }
+        }
+
+        function startPulseEngine(intervalMs) {
+            if (!hasPulseMusicOn) return;
+            if (pulseIntervalId) clearInterval(pulseIntervalId);
+            
+            pulseIntervalId = setInterval(() => {
+                if (!audioCtx || audioCtx.state === 'suspended') return;
+                try {
+                    let osc1 = audioCtx.createOscillator(); let g1 = audioCtx.createGain();
+                    osc1.type = 'sine'; osc1.frequency.setValueAtTime(sanValue < 50 ? 43 + Math.random()*12 : 50, audioCtx.currentTime);
+                    g1.gain.setValueAtTime(1.8, audioCtx.currentTime); g1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+                    osc1.connect(g1); g1.connect(audioCtx.destination);
+                    osc1.start(); osc1.stop(audioCtx.currentTime + 0.5);
+
+                    let osc2 = audioCtx.createOscillator(); let g2 = audioCtx.createGain();
+                    osc2.type = 'sine'; osc2.frequency.setValueAtTime(sanValue < 50 ? 38 + Math.random()*10 : 42, audioCtx.currentTime);
+                    g2.gain.setValueAtTime(1.4, audioCtx.currentTime); g2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.55);
+                    osc2.connect(g2); g2.connect(audioCtx.destination);
+                    osc2.start(); osc2.stop(audioCtx.currentTime + 0.55);
+                } catch(e){}
+            }, intervalMs);
+        }
+
+        function pausePulseEngineOnly() {
+            if (pulseIntervalId) { clearInterval(pulseIntervalId); pulseIntervalId = null; }
+        }
+
+        function stopPulseEngine() {
+            hasPulseMusicOn = false;
+            if (pulseIntervalId) { clearInterval(pulseIntervalId); pulseIntervalId = null; }
+        }
+
+        function execBloodRainParticle() {
+            if (isBloodRaining) return; isBloodRaining = true;
+            bloodRainTimer = setInterval(() => {
+                let p = document.createElement("div"); p.className = "blood-particle";
+                let size = Math.random() * 12 + 6; 
+                p.style.width = size + "px"; p.style.height = size + "px";
+                p.style.left = Math.random() * 100 + "%";
+                let speed = Math.random() * 1.5 + 1.5; p.style.animationDuration = speed + "s";
+                document.getElementById("terminal").appendChild(p);
+                setTimeout(() => { p.remove(); }, speed * 1000);
+            }, 60); 
+        }
+
+        function renderHomeEpilogueStream() {
+            if (finalStageIndex < finalEspScript.length) {
+                isTypingActive = true;
+                let targetText = finalEspScript[finalStageIndex];
+                let pBlock = document.createElement("div");
+                pBlock.className = "paragraph-block";
+                document.getElementById("text-canvas").appendChild(pBlock);
+                
+                let bodyEl = document.getElementById("story-body-element");
+                bodyEl.scrollTop = bodyEl.scrollHeight;
+                finalStageIndex++;
+
+                let charIdx = 0;
+                if (typingTimerId) clearInterval(typingTimerId);
+                typingTimerId = setInterval(() => {
+                    if (charIdx < targetText.length) {
+                        pBlock.innerHTML += targetText[charIdx];
+                        charIdx++;
+                    } else {
+                        clearInterval(typingTimerId);
+                        isTypingActive = false;
+                        if (finalStageIndex >= finalEspScript.length) {
+                            document.getElementById("banner-hint").style.display = "none";
+                            let bA = document.getElementById("choice-a");
+                            bA.innerText = "【點擊執行】解碼音軌：點擊 Reverse 反向播放音訊";
+                            bA.style.display = "block";
+                            bA.onclick = function(e) { e.stopPropagation(); executeFinalTruthRevelation(); };
+                        }
+                    }
+                }, 16);
+            }
+        }
+
+        function executeFinalTruthRevelation() {
+            document.getElementById("choice-a").style.display = "none";
+            document.body.style.backgroundColor = "#000";
+            
+            if (audioCtx) {
+                let now = audioCtx.currentTime;
+                for(let i=0; i<60; i++) {
+                    let osc = audioCtx.createOscillator(); let g = audioCtx.createGain();
+                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200 + Math.random()*450, now + (i*0.01));
+                    g.gain.setValueAtTime(0.6, now + (i*0.01)); g.gain.linearRampToValueAtTime(0.001, now + (i*0.01) + 0.08);
+                    osc.connect(g); g.connect(audioCtx.destination);
+                    osc.start(now + (i*0.01)); osc.stop(now + (i*0.01) + 0.08);
+                }
+            }
+
+            let pBlock = document.createElement("div");
+            pBlock.className = "paragraph-block";
+            pBlock.style.marginTop = "30px";
+            document.getElementById("text-canvas").appendChild(pBlock);
+
+            let appendLines = [
+                "\n耳機裡，原本規律、讓你無比依賴的助眠鼓點聲在軟體運算下徹底瓦解了。",
+                "取而代之的，是一個男人極度緊繃、像是喉嚨被死死勒住而硬擠出來的怨毒低語聲，伴隨雜音瘋狂重複著：",
+                "\n『去死吧...去死吧...去死吧...』\n",
+                "你這才明白，在台北頂加的那十個夜晚，你一直在強迫大腦吸收最惡毒的自殺洗腦。你再也不敢戴上耳機聽任何放鬆音樂了。"
+            ];
+
+            let lineIdx = 0;
+            function printRevealLine() {
+                if (lineIdx < appendLines.length) {
+                    let text = appendLines[lineIdx];
+                    let subDiv = document.createElement("p");
+                    if (lineIdx === 2) {
+                        subDiv.style.fontSize = "22px"; subDiv.style.color = "#ff3333";
+                        subDiv.style.textAlign = "center"; subDiv.style.fontWeight = "bold";
+                        subDiv.style.animation = "text-shiver 0.08s infinite";
+                    }
+                    pBlock.appendChild(subDiv);
+                    
+                    let cIdx = 0;
+                    let timer = setInterval(() => {
+                        if (cIdx < text.length) {
+                            subDiv.innerHTML += text[cIdx]; cIdx++;
+                        } else {
+                            clearInterval(timer); lineIdx++; setTimeout(printRevealLine, 400);
+                        }
+                    }, 25);
+                    let bodyEl = document.getElementById("story-body-element");
+                    bodyEl.scrollTop = bodyEl.scrollHeight;
+                } else {
+                    let bA = document.getElementById("choice-a");
+                    bA.innerText = "重新返回終端系統系統 (Reload)";
+                    bA.style.display = "block";
+                    bA.onclick = function() { location.reload(); };
+                }
+            }
+            printRevealLine();
+        }
+
+        function advanceStep(targetAction) {
+            if (targetAction === 'jumpscare_go') {
+                stopPulseEngine(); clearInterval(bloodRainTimer); clearInterval(window.whisperLoopId);
+                document.getElementById("terminal").innerHTML = "";
+                document.getElementById("terminal").style.backgroundColor = "#000";
+                document.body.style.background = "#000";
+
+                let container = document.createElement("div");
+                container.style.color = "#ff0000"; container.style.fontSize = "26px";
+                container.style.fontWeight = "bold"; container.style.wordBreak = "break-all";
+                container.style.padding = "25px"; container.style.lineHeight = "1.2";
+
+                let txt = ""; for(let i=0; i<700; i++) { txt += Math.random() > 0.5 ? "去死吧" : "倒流"; }
+                container.innerText = txt; document.getElementById("terminal").appendChild(container);
+                document.getElementById("terminal").classList.add("screen-shake");
+
+                setTimeout(() => {
+                    document.getElementById("terminal").style.display = "none";
+                    // 💥 語法已修正：改回標準指令，且字串提示完美受控！
+                    setTimeout(() => { document.getElementById("android-toast").style.display = "block"; }, 1000);
+                }, 750);
+                return;
+            }
+
+            if (targetAction === 'end_game_trigger') {
+                document.getElementById("android-toast").style.display = "none";
+                document.body.style.background = "#040a05";
+                let term = document.getElementById("terminal");
+                term.style.display = "flex";
+                
+                term.innerHTML = `
+                    <div class="status-bar"><span>TIME: 兩週後 · 南部老家房間</span><span>SAN: --</span></div>
+                    <div class="story-body" style="padding:40px; color:#aaffbb; line-height:2.3; overflow-y:auto; z-index:100;" id="story-body-element" onclick="feedNextSentence()">
+                        <div class="text-stream" id="text-canvas"></div>
+                    </div>
+                    <div class="control-panel" id="control-slot">
+                        <div class="click-hint-banner" id="banner-hint">--- 點擊上方螢幕任意處推進老家回憶 ---</div>
+                        <button id="choice-a" class="choice-btn"></button>
+                    </div>
+                `;
+                currentKey = "home_epilogue_line";
+                finalStageIndex = 0;
+                renderHomeEpilogueStream();
+                return;
+            }
+
+            progressStory(targetAction);
+        }
+    </script>
+</body>
+</html>
